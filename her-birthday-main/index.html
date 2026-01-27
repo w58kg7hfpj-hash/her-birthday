@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HBD dambo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <link type="text/css" rel="stylesheet" href="file/default.css">
+
+    <style>
+        body, html { margin:0; padding:0; background:#000000; font-family:sans-serif; overflow: hidden; height:100%; width:100%; }
+        #fireworksCanvas { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 9; pointer-events: none; background: #000; display: none; }
+        #countdownDisplay { position: fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-size: 15vw; font-weight: bold; color: #ffffff; z-index: 10; display: none; }
+        
+        /* The Button Overlay */
+        #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #020202; z-index: 1000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        #startBtn { padding: 25px 50px; font-size: 22px; cursor: pointer; background: #ac0358; color: #ffffff; border: none; border-radius: 50px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        #mainContainer { display: none; width: 100%; height: 100%; }
+        #code { display: none; font-size: 16px; line-height: 2em; text-align: center; margin-top: 20px; }
+        canvas#treeCanvas { display: block; margin: auto; }
+    </style>
+</head>
+<body>
+
+<audio id="myAudio" loop><source src="aud.mp3" type="audio/mp3"></audio>
+
+<div id="overlay">
+    <button id="startBtn" onclick="initiateSequence()">open your gift 🎁</button>
+    <p id="debugLog" style="color:red; margin-top:20px; font-size:13px;"></p>
+</div>
+
+<div id="countdownDisplay"></div>
+
+<div id="mainContainer">
+    <div id="text"><div id="code">
+        <span class="say">Hey dumbo ✨💞</span><br>
+        <span class="say">Happy Birthday🎂🎂</span><br>
+        <span class="say">May Allah bless you with so much happiness, surround you with love, and grant you all that your heart desires.💕❤️</span><br>
+       
+        <span class="say">I just want you to know how grateful I am for you and for every smile you bring into my life 💕</span><br>
+        <span class="say">Just saying you're pretty awesome❤️</span>
+        <span class="say">Sending good vibes and maybe a wink 😏</span>
+        <span class="say">I hope your day is filled with warmth, peace, and all the love you deserve 💝❤️</span>
+        <span class="say">I hope you are being spoiled today — and if not, I volunteer🫶😌</span>
+
+    </div></div>
+    <canvas id="treeCanvas" width="1100" height="680"></canvas>
+</div>
+
+<script src="file/jscex.min.js"></script>
+<script src="file/jscex-parser.js"></script>
+<script src="file/jscex-jit.js"></script>
+<script src="file/jscex-builderbase.min.js"></script>
+<script src="file/jscex-async.min.js"></script>
+<script src="file/jscex-async-powerpack.min.js"></script>
+<script src="file/function.js"></script>
+<script src="file/love.js"></script>
+
+<script>
+function initiateSequence() {
+    // Check if libraries loaded
+    if (typeof Jscex === "undefined" || typeof Tree === "undefined") {
+        document.getElementById('debugLog').innerText = "Error: 'love.js' or 'jscex' files not found in /file folder.";
+        return;
+    }
+
+    document.getElementById('overlay').style.display = 'none';
+    const audio = document.getElementById("myAudio");
+    audio.play().catch(e => console.log("Audio waiting..."));
+    
+    startCountdown();
+}
+
+let count = 5;
+function startCountdown() {
+    const el = document.getElementById('countdownDisplay');
+    el.style.display = 'block';
+    if (count > 0) {
+        el.innerText = count;
+        count--;
+        setTimeout(startCountdown, 1000);
+    } else {
+        el.style.display = 'none';
+        startTree();
+    }
+}
+
+
+function startTree() {
+    $("#mainContainer").show();
+    const canvas = $('#treeCanvas');
+    const width = canvas.width(), height = canvas.height();
+    
+    const tree = new Tree(canvas[0], width, height, {
+        seed: { x: width/2 - 20, color: "rgb(190, 26, 37)", scale: 2 },
+        branch: [[535, 680, 570, 250, 500, 200, 30, 100, [[540, 500, 455, 417, 340, 400, 13, 100, [[450, 435, 434, 430, 394, 395, 2, 40]]],[550, 445, 600, 356, 680, 345, 12, 100, [[578, 400, 648, 409, 661, 426, 3, 80]]],[539, 281, 537, 248, 534, 217, 3, 40],[546, 397, 413, 247, 328, 244, 9, 80, [[427, 286, 383, 253, 371, 205, 2, 40],[498, 345, 435, 315, 395, 330, 4, 60]]],[546, 357, 608, 252, 678, 221, 6, 100, [[590, 293, 646, 277, 648, 271, 2, 80]]]]]],
+        bloom: { num: 700, width: 1080, height: 650 },
+        footer: { width: 1200, height: 5, speed: 10 }
+    });
+
+    const seed = tree.seed;
+    const foot = tree.footer;
+    let hold = 1;
+
+    canvas.click(function(e) {
+        let offset = canvas.offset(), x = e.pageX - offset.left, y = e.pageY - offset.top;
+        if (seed.hover(x, y)) { hold = 0; canvas.unbind("click").unbind("mousemove").removeClass('hand'); }
+    }).mousemove(function(e) {
+        let offset = canvas.offset(), x = e.pageX - offset.left, y = e.pageY - offset.top;
+        canvas.toggleClass('hand', seed.hover(x, y));
+    });
+
+    const runAsync = eval(Jscex.compile("async", function () {
+        // Seed
+        seed.draw();
+        while (hold) { $await(Jscex.Async.sleep(10)); }
+        while (seed.canScale()) { seed.scale(0.95); $await(Jscex.Async.sleep(10)); }
+        while (seed.canMove()) { seed.move(0, 2); foot.draw(); $await(Jscex.Async.sleep(10)); }
+        // Grow
+        do { tree.grow(); $await(Jscex.Async.sleep(10)); } while (tree.canGrow());
+        // Bloom
+        do { tree.flower(2); $await(Jscex.Async.sleep(10)); } while (tree.canFlower());
+        // Move
+        tree.snapshot("p1", 240, 0, 610, 680);
+        while (tree.move("p1", 500, 0)) { foot.draw(); $await(Jscex.Async.sleep(10)); }
+        foot.draw();
+        tree.snapshot("p2", 500, 0, 610, 680);
+        // Text
+        $("#code").show().typewriter();
+    }));
+
+    runAsync().start();
+}
+</script>
+</body>
+</html>
