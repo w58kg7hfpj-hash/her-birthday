@@ -4,134 +4,111 @@
     <meta charset="UTF-8">
     <title>HBD Dumbo 🎂</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <style>
-        /* Base Styling */
-        body, html { margin:0; padding:0; background:#000000; font-family:sans-serif; color: white; overflow-x: hidden; scroll-behavior: smooth; }
+        body, html { margin:0; padding:0; background:#000; font-family:sans-serif; color: white; overflow-x: hidden; scroll-behavior: smooth; }
         
-        /* Section 1: Animation */
+        /* --- SECTION 1: ANIMATION --- */
         #heroSection { height: 100vh; width: 100%; position: relative; overflow: hidden; }
-        #countdownDisplay { position: fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-size: 15vw; font-weight: bold; z-index: 10; display: none; }
-        #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #020202; z-index: 1000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        #startBtn { padding: 25px 50px; font-size: 22px; cursor: pointer; background: #ac0358; color: #ffffff; border: none; border-radius: 50px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        #overlay { position: fixed; inset:0; background: #020202; z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        #startBtn { padding: 20px 40px; font-size: 22px; cursor: pointer; background: #ac0358; color: #fff; border: none; border-radius: 50px; font-weight: bold; transition: 0.3s; }
+        #startBtn:hover { background: #d4046d; transform: scale(1.05); }
         
         #text { position: absolute; width: 400px; left: 50px; top: 100px; z-index: 100; }
-        #code { display: none; font-size: 18px; line-height: 2em; color: #06889c; }
+        #code { display: none; font-size: 18px; line-height: 2.2em; color: #ff99ba; font-family: 'Caveat', cursive; }
         .say { display: block; margin-bottom: 10px; }
         canvas#treeCanvas { display: block; margin: auto; }
 
-        /* Section 2: Memory Gallery */
-        #gallerySection { 
-            min-height: 100vh; 
-            padding: 80px 20px; 
-            display: none; 
-            background: #000; 
-            text-align: center;
-            position: relative;
-        }
-        .gallery-title { font-family: 'Caveat', cursive; font-size: 4rem; color: #ff99ba; margin-bottom: 60px; }
-        
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
-            max-width: 1100px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-        }
+        /* --- SECTION 2: POLAROID GALLERY (REDESIGNED) --- */
+        #gallerySection { min-height: 100vh; padding: 80px 20px; display: none; background: #000; text-align: center; }
+        .gallery-title { font-family: 'Caveat', cursive; font-size: 4rem; color: #ff99ba; margin-bottom: 50px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; max-width: 1100px; margin: 0 auto; }
 
-        /* Polaroid Styling */
-        .polaroid-card {
-            width: 100%;
-            aspect-ratio: 3 / 4;
-            background: #fff;
-            padding: 12px 12px 60px 12px;
-            box-shadow: 0 15px 30px rgba(255,153,186,0.2);
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            border: 1px solid #ddd;
+        .polaroid-card { 
+            width: 100%; aspect-ratio: 3/4; background: #fff; padding: 12px;
+            position: relative; cursor: pointer; transition: transform 0.6s; transform-style: preserve-3d; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
-
-        .polaroid-card:hover { transform: scale(1.03) rotate(1deg); }
         .polaroid-card.flipped { transform: rotateY(180deg); }
-
-        .card-front, .card-back {
-            position: absolute;
-            top: 12px; left: 12px; right: 12px; bottom: 60px;
-            backface-visibility: hidden;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden;
-        }
-
-        .card-front img { width: 100%; height: 100%; object-fit: cover; }
         
-        .card-back {
-            background: #fff;
-            color: #333;
-            transform: rotateY(180deg);
-            padding: 20px;
-            font-family: 'Caveat', cursive;
-            font-size: 1.6rem;
-            text-align: center;
-            border: 1px solid #eee;
+        .card-front, .card-back { 
+            position: absolute; inset: 12px; backface-visibility: hidden; 
+            background: #fff; display: flex; flex-direction: column; overflow: hidden; 
         }
 
-        .polaroid-card::after {
-            content: "tap to flip ✨";
-            position: absolute; bottom: 15px; left: 0; width: 100%;
-            color: #888; font-family: 'Caveat', cursive; font-size: 1.2rem;
-            text-align: center;
+        /* Message on Front */
+        .card-front { 
+            justify-content: center; align-items: center; padding: 20px;
+            color: #333; font-family: 'Caveat', cursive; font-size: 1.8rem; text-align: center;
         }
 
-        /* Floating Hearts Animation */
-        .heart {
-            position: absolute;
-            color: #ff99ba;
-            font-size: 20px;
-            pointer-events: none;
-            z-index: 1;
-            animation: floatUp 6s linear forwards;
+        /* Image on Back */
+        .card-back { transform: rotateY(180deg); }
+        .polaroid-image-area { width: 100%; height: 82%; overflow: hidden; }
+        .polaroid-image-area img { width: 100%; height: 100%; object-fit: cover; }
+        .polaroid-caption { 
+            height: 18%; display: flex; align-items: center; justify-content: center; 
+            color: #444; font-family: 'Caveat', cursive; font-size: 1.2rem;
         }
 
-        @keyframes floatUp {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        /* --- SECTION 3: THE LARGE DIGICAM --- */
+        #videoSection { min-height: 100vh; padding: 60px 20px; display: none; text-align: center; background: #000; }
+        
+        .digicam-wrapper { 
+            position: relative; display: inline-block; width: 95%; max-width: 850px; 
+            aspect-ratio: 1.6 / 1; margin: 0 auto; background: #000; 
         }
 
-        @media screen and (max-width: 900px) {
-            .grid-container { grid-template-columns: repeat(2, 1fr); }
+        .cam-body-img { 
+            width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 1;
+            mix-blend-mode: lighten; 
         }
-        @media screen and (max-width: 600px) {
-            .grid-container { grid-template-columns: 1fr; }
-            #text { width: 90%; left: 5%; top: 20px; }
+
+        .cam-screen-container { 
+            position: absolute; top: 13.5%; left: 5.2%; width: 63.8%; height: 69.5%; 
+            background: #000; overflow: hidden; display: flex; align-items: center; 
+            justify-content: center; z-index: 2; border-radius: 2px;
         }
+
+        #birthdayVideo { width: 100% !important; height: 100% !important; object-fit: cover; display: block; }
+
+        .cam-overlay-text {
+            position: absolute; top: 10px; left: 10px; color: #ff0000; font-family: monospace;
+            font-size: 14px; font-weight: bold; z-index: 3; text-shadow: 1px 1px 2px #000; animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        .cam-controls { margin-top: 30px; display: flex; justify-content: center; gap: 20px; }
+        .control-btn { 
+            background: #ac0358; border: none; color: white; padding: 10px 25px; 
+            border-radius: 20px; cursor: pointer; font-family: 'Caveat', cursive; font-size: 1.2rem;
+        }
+
+        .heart { position: absolute; color: #ff99ba; font-size: 20px; pointer-events: none; z-index: 1; animation: floatUp 6s linear forwards; }
+        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100vh); opacity: 0; } }
     </style>
 </head>
 <body>
 
 <audio id="myAudio" loop><source src="aud.mp3" type="audio/mp3"></audio>
+<audio id="galleryAudio" loop><source src="gallery_music.mp3" type="audio/mp3"></audio>
+<audio id="flipSound"><source src="shutter.mp3" type="audio/mp3"></audio>
 
 <div id="overlay">
     <button id="startBtn" onclick="initiateSequence()">open your gift 🎁</button>
 </div>
 
-<div id="countdownDisplay"></div>
-
 <div id="heroSection">
     <div id="mainContainer">
         <div id="text">
             <div id="code">
-                <span class="say">Hey dumbo ✨💞</span>
+                 <span class="say">Hey dumb potato ✨💞</span>
                 <span class="say">Happy Birthday🎂🎂</span>
                 <span class="say">May Allah bless you with so much happiness, surround you with love, and grant you all that your heart desires.💕❤️</span>
                 <span class="say">I just want you to know how grateful I am for you and for every smile you bring into my life 💕</span>
-                <span class="say">Just saying you're pretty awesome and you deserve all the love 💝❤️ </span>
+                <span class="say">Just saying you're pretty awesome and you deserve all the love 💝 </span>
                 <span class="say">Sending good vibes and maybe a wink 😏</span>
                 <span class="say">I hope you are being spoiled today — and if not, I volunteer🫶😌</span>
             </div>
@@ -145,6 +122,25 @@
     <div class="grid-container" id="galleryGrid"></div>
 </div>
 
+<div id="videoSection">
+    <h2 class="gallery-title">the best moment 📹</h2>
+    <div class="digicam-wrapper">
+        <img src="cam.png" class="cam-body-img">
+        <div class="cam-screen-container">
+            <div class="cam-overlay-text">● REC</div>
+            <video id="birthdayVideo" playsinline>
+                <source src="vid1.mp4" type="video/mp4">
+            </video>
+        </div>
+    </div>
+    
+    <div class="cam-controls">
+        <button class="control-btn" onclick="prevVideo()">Previous</button>
+        <button class="control-btn" onclick="playPause()">Play/Pause</button>
+        <button class="control-btn" onclick="nextVideo()">Next</button>
+    </div>
+</div>
+
 <script src="file/jscex.min.js"></script>
 <script src="file/jscex-parser.js"></script>
 <script src="file/jscex-jit.js"></script>
@@ -155,91 +151,104 @@
 <script src="file/love.js"></script>
 
 <script>
-// UPDATE YOUR IMAGES AND MESSAGES HERE
-const memories = [
-    { img: "img1.jpg", msg: "This was such a special day! ❤️" },
-    { img: "img2.jpg", msg: "You look absolutely stunning here. ✨" },
-    { img: "img3.jpg", msg: "this is the best way to express this 😊" },
-    { img: "img4.jpg", msg: "The best memories are with you. 🫶" },
-    { img: "img5.jpg", msg: "Always stay this amazing. 🌟" },
-    { img: "img6.jpg", msg: "Happy Birthday, Dumbo! 🎂" }
+var memories = [
+{ img: "img1.jpg", msg: "الا وطن لي.. وطني حيثيا تكون انغتِ 🤍" },
+{ img: "img2.jpg", msg: "There’s something about the way you smile… it quietly makes the world better. ✨" },
+{ img: "img3.jpg", msg: "This smile feels warm, even through a picture. 😌💓" },
+{ img: "img4.jpg", msg: "Even simple places look beautiful when you’re standing there. 💕" },
+{ img: "img5.jpg", msg: "You don’t try too hard… and that’s what makes you so special. 🌸" },
+{ img: "img6.jpg", msg: "Some people just carry a calm kind of magic… you’re one of them.💓♾️" },
+{ img: "img7.jpg", msg:  "I didn’t know moments like this would become my favorite memories. 🖤🤍"},
+{ img: "img8.jpg", msg:  "yea i have use chatgpt for the this lines becuse my hindi and english bith are bad but not for the first one thats true 🤍"}
 ];
 
+var videoList = ["vid1.mp4","vid2.mp4","vid3.mp4","vid4.mp4","vid5.mp4"]; 
+var currentVidIndex = 0;
+var videoPlayer = document.getElementById("birthdayVideo");
+
 function initiateSequence() {
-    document.getElementById('overlay').style.display = 'none';
+    $("#overlay").fadeOut();
     document.getElementById("myAudio").play();
-    startCountdown();
+    startTree();
 }
 
-let count = 5;
-function startCountdown() {
-    const el = document.getElementById('countdownDisplay');
-    el.style.display = 'block';
-    if (count > 0) { el.innerText = count; count--; setTimeout(startCountdown, 1000); } 
-    else { el.style.display = 'none'; startTree(); }
-}
+function playPause() { if(videoPlayer.paused) videoPlayer.play(); else videoPlayer.pause(); }
+function nextVideo() { currentVidIndex = (currentVidIndex + 1) % videoList.length; videoPlayer.src = videoList[currentVidIndex]; videoPlayer.play(); }
+function prevVideo() { currentVidIndex = (currentVidIndex - 1 + videoList.length) % videoList.length; videoPlayer.src = videoList[currentVidIndex]; videoPlayer.play(); }
 
 function setupGallery() {
-    const grid = document.getElementById('galleryGrid');
-    grid.innerHTML = ''; // Clear existing
-    memories.forEach(item => {
-        const card = `
-            <div class="polaroid-card" onclick="this.classList.toggle('flipped')">
-                <div class="card-front"><img src="${item.img}"></div>
-                <div class="card-back">${item.msg}</div>
-            </div>`;
-        grid.innerHTML += card;
-    });
+    var grid = document.getElementById('galleryGrid');
+    var html = "";
+    for(var i=0; i<memories.length; i++) {
+        html += '<div class="polaroid-card" onclick="flipAction(this)">' +
+                '<div class="card-front">' + memories[i].msg + '</div>' +
+                '<div class="card-back">' +
+                    '<div class="polaroid-image-area"><img src="' + memories[i].img + '"></div>' +
+                    '<div class="polaroid-caption">Click for surprise ✨</div>' +
+                '</div>' +
+                '</div>';
+    }
+    grid.innerHTML = html;
+}
+
+function flipAction(card) {
+    card.classList.toggle('flipped');
+    var snd = document.getElementById("flipSound");
+    snd.currentTime = 0;
+    snd.play();
 }
 
 function createHearts() {
-    setInterval(() => {
-        const heart = document.createElement("div");
-        heart.innerHTML = "💕";
+    setInterval(function() {
+        var heart = document.createElement("div");
+        heart.innerHTML = "💕🌮";
         heart.classList.add("heart");
         heart.style.left = Math.random() * 100 + "vw";
         heart.style.top = (window.scrollY + window.innerHeight) + "px";
-        heart.style.animationDuration = (Math.random() * 3 + 3) + "s";
         document.body.appendChild(heart);
-        setTimeout(() => heart.remove(), 6000);
-    }, 300);
+        setTimeout(function() { heart.remove(); }, 6000);
+    }, 400);
 }
 
 function startTree() {
-    $("#mainContainer").show();
-    const canvas = $('#treeCanvas');
-    const tree = new Tree(canvas[0], canvas.width(), canvas.height(), {
+    var canvas = $('#treeCanvas');
+    var tree = new Tree(canvas[0], canvas.width(), canvas.height(), {
         seed: { x: canvas.width()/2 - 20, color: "rgb(190, 26, 37)", scale: 2 },
         branch: [[535, 680, 570, 250, 500, 200, 30, 100, [[540, 500, 455, 417, 340, 400, 13, 100, [[450, 435, 434, 430, 394, 395, 2, 40]]],[550, 445, 600, 356, 680, 345, 12, 100, [[578, 400, 648, 409, 661, 426, 3, 80]]],[539, 281, 537, 248, 534, 217, 3, 40],[546, 397, 413, 247, 328, 244, 9, 80, [[427, 286, 383, 253, 371, 205, 2, 40],[498, 345, 435, 315, 395, 330, 4, 60]]],[546, 357, 608, 252, 678, 221, 6, 100, [[590, 293, 646, 277, 648, 271, 2, 80]]]]]],
         bloom: { num: 700, width: 1080, height: 650 },
         footer: { width: 1200, height: 5, speed: 10 }
     });
 
-    const runAsync = eval(Jscex.compile("async", function () {
+    var runAsync = eval(Jscex.compile("async", function () {
         tree.seed.draw();
         while (tree.seed.canScale()) { tree.seed.scale(0.95); $await(Jscex.Async.sleep(10)); }
         while (tree.seed.canMove()) { tree.seed.move(0, 2); tree.footer.draw(); $await(Jscex.Async.sleep(10)); }
         do { tree.grow(); $await(Jscex.Async.sleep(10)); } while (tree.canGrow());
         do { tree.flower(2); $await(Jscex.Async.sleep(10)); } while (tree.canFlower());
-        
         tree.snapshot("p1", 240, 0, 610, 680);
         while (tree.move("p1", 500, 0)) { tree.footer.draw(); $await(Jscex.Async.sleep(10)); }
         
-        // Start typing
         $("#code").show().typewriter();
+        $await(Jscex.Async.sleep(38000)); 
         
-        // WAIT FOR TEXT TO FINISH (38 Seconds)
-        $await(Jscex.Async.sleep(38000));
-        
-        // Setup and reveal gallery
+        // --- TRANSITION TO GALLERY ---
+        $("#myAudio").animate({volume: 0}, 2000, function(){
+            this.pause();
+            document.getElementById("galleryAudio").play();
+        });
+
         setupGallery();
         $("#gallerySection").fadeIn(2000);
         createHearts();
+        $('html, body').animate({ scrollTop: $("#gallerySection").offset().top }, 2500);
+
+        // Wait while they look at images
+        $await(Jscex.Async.sleep(10000)); 
         
-        // Smooth scroll to gallery
-        $('html, body').animate({ 
-            scrollTop: $("#gallerySection").offset().top 
-        }, 2500);
+        // --- TRANSITION TO VIDEO (KEEPING GALLERY MUSIC) ---
+        $("#videoSection").fadeIn(2000);
+        $('html, body').animate({ scrollTop: $("#videoSection").offset().top }, 2500);
+        setTimeout(function() { videoPlayer.play(); }, 2000);
     }));
 
     runAsync().start();
